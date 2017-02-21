@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.olingo:odata-server-core:4.0.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.olingo/odata-server-core/4.0.0/1e356cb3d5bfe925080dd06f1fd14942130fc2a1/odata-server-core-4.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.olingo/odata-server-core/4.0.0/4658b15cd3e993f4e2e922ea7c3788aff04b708f/odata-server-core-4.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
