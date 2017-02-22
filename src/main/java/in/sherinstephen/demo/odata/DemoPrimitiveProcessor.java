@@ -26,12 +26,12 @@ import java.util.Locale;
  * @author Sherin (I073367)
  * @since 21/2/17
  */
-public class StudentPrimitiveProcessor implements PrimitiveProcessor {
+public class DemoPrimitiveProcessor implements PrimitiveProcessor {
     private OData odata;
     private ServiceMetadata serviceMetadata;
     private StudentDAO studentDAO;
 
-    public StudentPrimitiveProcessor(StudentDAO studentDAO) {
+    public DemoPrimitiveProcessor(StudentDAO studentDAO) {
 
         this.studentDAO = studentDAO;
     }

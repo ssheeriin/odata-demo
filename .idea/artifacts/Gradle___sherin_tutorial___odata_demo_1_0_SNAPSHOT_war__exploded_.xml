@@ -17,8 +17,15 @@
           <element id="dir-copy" path="$PROJECT_DIR$/build/resources/main" />
         </element>
         <element id="directory" name="lib">
-          <element id="library" level="project" name="Gradle: org.abego.treelayout:org.abego.treelayout.core:1.0.1" />
-          <element id="library" level="project" name="Gradle: org.antlr:antlr4-runtime:4.5" />
+          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-server-api:4.0.0" />
+          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-commons-api:4.0.0" />
+          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-commons-core:4.0.0" />
+          <element id="library" level="project" name="Gradle: org.slf4j:slf4j-api:1.7.11" />
+          <element id="library" level="project" name="Gradle: javax.servlet:javax.servlet-api:3.1.0" />
+          <element id="library" level="project" name="Gradle: org.apache.commons:commons-lang3:3.3.2" />
+          <element id="library" level="project" name="Gradle: commons-codec:commons-codec:1.9" />
+          <element id="library" level="project" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.4.2" />
+          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-server-core:4.0.0" />
           <element id="library" level="project" name="Gradle: org.slf4j:slf4j-simple:1.7.7" />
           <element id="library" level="project" name="Gradle: com.fasterxml.jackson.core:jackson-databind:2.4.2" />
           <element id="library" level="project" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.4.2" />
@@ -26,15 +33,8 @@
           <element id="library" level="project" name="Gradle: com.fasterxml:aalto-xml:0.9.10" />
           <element id="library" level="project" name="Gradle: com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.4.2" />
           <element id="library" level="project" name="Gradle: org.codehaus.woodstox:stax2-api:3.1.4" />
-          <element id="library" level="project" name="Gradle: org.slf4j:slf4j-api:1.7.11" />
-          <element id="library" level="project" name="Gradle: org.apache.commons:commons-lang3:3.3.2" />
-          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-commons-core:4.0.0" />
-          <element id="library" level="project" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.4.2" />
-          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-server-core:4.0.0" />
-          <element id="library" level="project" name="Gradle: commons-codec:commons-codec:1.9" />
-          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-commons-api:4.0.0" />
-          <element id="library" level="project" name="Gradle: org.apache.olingo:odata-server-api:4.0.0" />
-          <element id="file-copy" path="$USER_HOME$/.gradle/caches/modules-2/files-2.1/javax.servlet/javax.servlet-api/3.1.0/3cd63d075497751784b2fa84be59432f4905bf7c/javax.servlet-api-3.1.0.jar" />
+          <element id="library" level="project" name="Gradle: org.antlr:antlr4-runtime:4.5" />
+          <element id="library" level="project" name="Gradle: org.abego.treelayout:org.abego.treelayout.core:1.0.1" />
         </element>
       </element>
     </root>

@@ -100,4 +100,42 @@ public class Util {
 
         return true;
     }
+
+    /**
+     * Example:
+     * For the following navigation: DemoService.svc/Department(1)/Students
+     * we need the EdmEntitySet for the navigation property "Students"
+     * <p>
+     * This is defined as follows in the metadata:
+     * <code>
+     * <p>
+     * <EntitySet Name="Departments" EntityType="OData.Demo.Depatment">
+     * <NavigationPropertyBinding Path="Students" Target="Students"/>
+     * </EntitySet>
+     * </code>
+     * The "Target" attribute specifies the target EntitySet
+     * Therefore we need the startEntitySet "Departments" in order to retrieve the target EntitySet "Students"
+     */
+    public static EdmEntitySet getNavigationTargetEntitySet(EdmEntitySet startEdmEntitySet,
+                                                            EdmNavigationProperty edmNavigationProperty)
+            throws ODataApplicationException {
+
+        EdmEntitySet navigationTargetEntitySet = null;
+
+        String navPropName = edmNavigationProperty.getName();
+        EdmBindingTarget edmBindingTarget = startEdmEntitySet.getRelatedBindingTarget(navPropName);
+        if (edmBindingTarget == null) {
+            throw new ODataApplicationException("Not supported.",
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+        }
+
+        if (edmBindingTarget instanceof EdmEntitySet) {
+            navigationTargetEntitySet = (EdmEntitySet) edmBindingTarget;
+        } else {
+            throw new ODataApplicationException("Not supported.",
+                    HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+        }
+
+        return navigationTargetEntitySet;
+    }
 }

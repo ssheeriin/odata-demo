@@ -8,6 +8,7 @@ import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.apache.olingo.commons.api.edm.EdmKeyPropertyRef;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.commons.api.http.HttpMethod;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -28,9 +29,11 @@ import java.util.Locale;
 public class StudentDAOImpl implements StudentDAO {
 
     private List<Entity> studentList;
+    private List<Entity> departmentList;
 
     public StudentDAOImpl() {
         this.studentList = new ArrayList<>();
+        this.departmentList = new ArrayList<>();
         initSampleData();
     }
 
@@ -77,7 +80,7 @@ public class StudentDAOImpl implements StudentDAO {
         Property idProperty = entityToCreate.getProperty("id");
         if (idProperty != null) {
             if (idProperty.getValue() != null) {
-                newId = studentIdExists((Integer) idProperty.getValue()) ? getNextId() :  (Integer) idProperty.getValue()  ;
+                newId = studentIdExists((Integer) idProperty.getValue()) ? getNextId() : (Integer) idProperty.getValue();
             } else {
                 newId = getNextId();
             }
@@ -86,7 +89,6 @@ public class StudentDAOImpl implements StudentDAO {
             // as of OData v4 spec, the key property can be omitted from the POST request body
             entityToCreate.getProperties().add(new Property(null, "id", ValueType.PRIMITIVE, newId));
         }
-        entityToCreate.setId(createId("Students", newId));
         this.studentList.add(entityToCreate);
 
         return entityToCreate;
@@ -124,6 +126,54 @@ public class StudentDAOImpl implements StudentDAO {
         if (edmEntityType.getName().equals(DemoEdmProvider.ET_STUDENT_NAME)) {
             deleteStudent(edmEntityType, keyPredicates);
         }
+    }
+
+    @Override
+    public EntityCollection getRelatedEntityCollection(Entity sourceEntity, EdmEntityType targetEntityType) {
+        EntityCollection navigationTargetEntityCollection = new EntityCollection();
+
+        FullQualifiedName relatedEntityFqn = targetEntityType.getFullQualifiedName();
+        String sourceEntityFqn = sourceEntity.getType();
+
+        if (sourceEntityFqn.equals(DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString())
+                && relatedEntityFqn.equals(DemoEdmProvider.ET_DEPARTMENT_FQN)) {
+            navigationTargetEntityCollection.setId(createId(sourceEntity, "ID", DemoEdmProvider.NAV_TO_DEP));
+            // relation Products->Category (result all categories)
+            int studentId = (Integer) sourceEntity.getProperty("id").getValue();
+            if (studentId == 1 || studentId == 2) {
+                navigationTargetEntityCollection.getEntities().add(departmentList.get(0));
+            } else if (studentId == 3 || studentId == 4) {
+                navigationTargetEntityCollection.getEntities().add(departmentList.get(1));
+            } else if (studentId == 5 || studentId == 6) {
+                navigationTargetEntityCollection.getEntities().add(departmentList.get(2));
+            }
+        } else if (sourceEntityFqn.equals(DemoEdmProvider.ET_DEPARTMENT_FQN.getFullQualifiedNameAsString())
+                && relatedEntityFqn.equals(DemoEdmProvider.ET_STUDENT_FQN)) {
+            navigationTargetEntityCollection.setId(createId(sourceEntity, "id", DemoEdmProvider.NAV_TO_STUDENTS));
+            // relation Category->Products (result all products)
+            int categoryID = (Integer) sourceEntity.getProperty("ID").getValue();
+            if (categoryID == 1) {
+                // the first 2 products are notebooks
+                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(0, 2));
+            } else if (categoryID == 2) {
+                // the next 2 products are organizers
+                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(2, 4));
+            } else if (categoryID == 3) {
+                // the first 2 products are monitors
+                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(4, 6));
+            }
+        }
+
+        if (navigationTargetEntityCollection.getEntities().isEmpty()) {
+            return null;
+        }
+
+        return navigationTargetEntityCollection;
+    }
+
+    @Override
+    public Entity getRelatedEntity(Entity entity, EdmEntityType expandEdmEntityType) {
+        return null;
     }
 
     private void deleteStudent(EdmEntityType edmEntityType, List<UriParameter> keyPredicates) throws ODataApplicationException {
@@ -218,7 +268,9 @@ public class StudentDAOImpl implements StudentDAO {
                 .addProperty(new Property(null, "lastName", ValueType.PRIMITIVE,
                         "Freeman"))
                 .addProperty(new Property(null, "dateOfBirth", ValueType.PRIMITIVE, new Date()));
-        e1.setId(createId("Students", 1));
+        e1.setType(DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString());
+        e1.setId(createId(e1, "id"));
+
         studentList.add(e1);
 
         final Entity e2 = new Entity()
@@ -227,7 +279,8 @@ public class StudentDAOImpl implements StudentDAO {
                 .addProperty(new Property(null, "lastName", ValueType.PRIMITIVE,
                         "Hanks"))
                 .addProperty(new Property(null, "dateOfBirth", ValueType.PRIMITIVE, new Date()));
-        e2.setId(createId("Students", 2));
+        e2.setType(DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString());
+        e2.setId(createId(e2, "id"));
         studentList.add(e2);
 
         final Entity e3 = new Entity()
@@ -236,17 +289,36 @@ public class StudentDAOImpl implements StudentDAO {
                 .addProperty(new Property(null, "lastName", ValueType.PRIMITIVE,
                         "Crowe"))
                 .addProperty(new Property(null, "dateOfBirth", ValueType.PRIMITIVE, new Date()));
-        e3.setId(createId("Students", 3));
+        e3.setType(DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString());
+        e3.setId(createId(e3, "id"));
         studentList.add(e3);
     }
 
-
-    private URI createId(String entitySetName, int id) {
+    private URI createId(Entity entity, String idPropertyName, String navigationName) {
         try {
-            return new URI(entitySetName + "(" + String.valueOf(id) + ")");
+            StringBuilder sb = new StringBuilder(getEntitySetName(entity)).append("(");
+            final Property property = entity.getProperty(idPropertyName);
+            sb.append(property.asPrimitive()).append(")");
+            if (navigationName != null) {
+                sb.append("/").append(navigationName);
+            }
+            return new URI(sb.toString());
         } catch (URISyntaxException e) {
-            throw new ODataRuntimeException("Unable to create id for entity: " + entitySetName, e);
+            throw new ODataRuntimeException("Unable to create (Atom) id for entity: " + entity, e);
         }
+    }
+
+    private String getEntitySetName(Entity entity) {
+        if (DemoEdmProvider.ET_DEPARTMENT_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
+            return DemoEdmProvider.ES_DEPARTMENT_NAME;
+        } else if (DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString().equals(entity.getType())) {
+            return DemoEdmProvider.ES_STUDENTS_NAME;
+        }
+        return entity.getType();
+    }
+
+    private URI createId(Entity entity, String id) {
+        return createId(entity, id, null);
     }
 
     public int getNextId() {

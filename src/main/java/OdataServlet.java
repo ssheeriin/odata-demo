@@ -1,7 +1,7 @@
 import in.sherinstephen.demo.odata.DemoEdmProvider;
-import in.sherinstephen.demo.odata.StudentEntityCollectionProcessor;
-import in.sherinstephen.demo.odata.StudentEntityProcessor;
-import in.sherinstephen.demo.odata.StudentPrimitiveProcessor;
+import in.sherinstephen.demo.odata.DemoEntityCollectionProcessor;
+import in.sherinstephen.demo.odata.DemoEntityProcessor;
+import in.sherinstephen.demo.odata.DemoPrimitiveProcessor;
 import in.sherinstephen.demo.service.StudentDAO;
 import in.sherinstephen.demo.service.StudentDAOImpl;
 import org.apache.olingo.server.api.OData;
@@ -34,9 +34,9 @@ public class OdataServlet extends javax.servlet.http.HttpServlet {
 
             ODataHttpHandler handler = odata.createHandler(edm);
 
-            handler.register(new StudentEntityCollectionProcessor(studentDAO));
-            handler.register(new StudentEntityProcessor(studentDAO));
-            handler.register(new StudentPrimitiveProcessor(studentDAO));
+            handler.register(new DemoEntityCollectionProcessor(studentDAO));
+            handler.register(new DemoEntityProcessor(studentDAO));
+            handler.register(new DemoPrimitiveProcessor(studentDAO));
 
             handler.process(req, resp);
         } catch (RuntimeException e) {

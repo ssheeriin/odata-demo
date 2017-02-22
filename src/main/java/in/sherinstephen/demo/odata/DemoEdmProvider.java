@@ -38,6 +38,8 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
     // Entity Set Names
     public static final String ES_STUDENTS_NAME = "Students";
     public static final String ES_DEPARTMENT_NAME = "Departments";
+    public static final String NAV_TO_DEP = "Department";
+    public static final String NAV_TO_STUDENTS = "Students";
 
 
     // this method is called for one of the EntityTypes that are configured in the Schema
@@ -48,6 +50,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
             CsdlProperty fname = new CsdlProperty().setName("firstName").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
             CsdlProperty lname = new CsdlProperty().setName("lastName").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
             CsdlProperty dob = new CsdlProperty().setName("dateOfBirth").setType(EdmPrimitiveTypeKind.Date.getFullQualifiedName());
+
             CsdlNavigationProperty navProp = new CsdlNavigationProperty()
                     .setName("Department")
                     .setType(ET_DEPARTMENT_FQN)
@@ -67,27 +70,26 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
             entityType.setNavigationProperties(navPropList);
 
             return entityType;
+
         } else if (entityTypeName.equals(ET_DEPARTMENT_FQN)) {
             CsdlProperty id = new CsdlProperty().setName("id").setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName());
             CsdlProperty name = new CsdlProperty().setName("name").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName());
 
-            // navigation property: one-to-many
-            CsdlNavigationProperty navProp = new CsdlNavigationProperty()
-                    .setName("Students")
-                    .setType(ET_STUDENT_FQN)
-                    .setCollection(true)
-                    .setPartner("Department");
-
+            // create PropertyRef for Key element
             CsdlPropertyRef propertyRef = new CsdlPropertyRef();
-            propertyRef.setName("id");
+            propertyRef.setName("ID");
 
+            // navigation property: one-to-many
+            CsdlNavigationProperty navProp = new CsdlNavigationProperty().setName("Students")
+                    .setType(ET_STUDENT_FQN.getFullQualifiedNameAsString()).setCollection(true).setPartner("Department");
             List<CsdlNavigationProperty> navPropList = new ArrayList<CsdlNavigationProperty>();
             navPropList.add(navProp);
 
+            // configure EntityType
             CsdlEntityType entityType = new CsdlEntityType();
             entityType.setName(ET_DEPARTMENT_NAME);
             entityType.setProperties(Arrays.asList(id, name));
-            entityType.setKey(Collections.singletonList(propertyRef));
+            entityType.setKey(Arrays.asList(propertyRef));
             entityType.setNavigationProperties(navPropList);
 
             return entityType;
@@ -103,6 +105,27 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
                 entitySet.setName(ES_STUDENTS_NAME);
                 entitySet.setType(ET_STUDENT_FQN);
 
+                // navigation
+                CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
+                navPropBinding.setTarget("Departments"); // the target entity set, where the navigation property points to
+                navPropBinding.setPath("Department"); // the path from entity type to navigation property
+                List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
+                navPropBindingList.add(navPropBinding);
+                entitySet.setNavigationPropertyBindings(navPropBindingList);
+
+                return entitySet;
+            } else if (entitySetName.contains(ES_DEPARTMENT_NAME)) {
+                CsdlEntitySet entitySet = new CsdlEntitySet();
+                entitySet.setName(ES_DEPARTMENT_NAME);
+                entitySet.setType(ET_DEPARTMENT_FQN);
+
+                // navigation
+                CsdlNavigationPropertyBinding navPropBinding = new CsdlNavigationPropertyBinding();
+                navPropBinding.setTarget("Students"); // the target entity set, where the navigation property points to
+                navPropBinding.setPath("Students"); // the path from entity type to navigation property
+                List<CsdlNavigationPropertyBinding> navPropBindingList = new ArrayList<CsdlNavigationPropertyBinding>();
+                navPropBindingList.add(navPropBinding);
+                entitySet.setNavigationPropertyBindings(navPropBindingList);
                 return entitySet;
             }
         }
@@ -129,6 +152,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
         // add EntityTypes
         List<CsdlEntityType> entityTypes = new ArrayList<CsdlEntityType>();
         entityTypes.add(getEntityType(ET_STUDENT_FQN));
+        entityTypes.add(getEntityType(ET_DEPARTMENT_FQN));
         schema.setEntityTypes(entityTypes);
 
         // add EntityContainer
@@ -146,6 +170,8 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
         // create EntitySets
         List<CsdlEntitySet> entitySets = new ArrayList<CsdlEntitySet>();
         entitySets.add(getEntitySet(CONTAINER, ES_STUDENTS_NAME));
+        entitySets.add(getEntitySet(CONTAINER, ES_DEPARTMENT_NAME));
+
 
         // create EntityContainer
         CsdlEntityContainer entityContainer = new CsdlEntityContainer();

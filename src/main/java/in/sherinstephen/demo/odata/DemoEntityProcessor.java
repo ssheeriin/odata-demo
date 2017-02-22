@@ -29,13 +29,13 @@ import java.util.List;
  * @author Sherin (I073367)
  * @since 21/2/17
  */
-public class StudentEntityProcessor implements EntityProcessor {
+public class DemoEntityProcessor implements EntityProcessor {
 
     private StudentDAO studentDAO;
     private OData odata;
     private ServiceMetadata serviceMetadata;
 
-    public StudentEntityProcessor(StudentDAO studentDAO) {
+    public DemoEntityProcessor(StudentDAO studentDAO) {
 
         this.studentDAO = studentDAO;
     }
