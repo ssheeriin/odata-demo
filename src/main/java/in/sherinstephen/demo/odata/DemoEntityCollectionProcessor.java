@@ -3,9 +3,11 @@ package in.sherinstephen.demo.odata;
 import in.sherinstephen.demo.service.StudentDAO;
 import in.sherinstephen.demo.service.Util;
 import org.apache.olingo.commons.api.Constants;
-import org.apache.olingo.commons.api.data.*;
+import org.apache.olingo.commons.api.data.ContextURL;
+import org.apache.olingo.commons.api.data.Entity;
+import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.data.Link;
 import org.apache.olingo.commons.api.edm.*;
-import org.apache.olingo.commons.api.ex.ODataRuntimeException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
@@ -13,17 +15,12 @@ import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.processor.EntityCollectionProcessor;
 import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions;
 import org.apache.olingo.server.api.serializer.ODataSerializer;
-import org.apache.olingo.server.api.serializer.SerializerException;
 import org.apache.olingo.server.api.serializer.SerializerResult;
 import org.apache.olingo.server.api.uri.*;
 import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -72,6 +69,13 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
 
                 // 2nd: fetch the data from backend for this requested EntitySetName and deliver as EntitySet
                 responseEntityCollection = studentDAO.readEntitySetData(edmEntitySet);
+//                for (Entity entity : responseEntityCollection.getEntities()) {
+//                    for (String navProp : responseEdmEntitySet.getEntityType().getNavigationPropertyNames()) {
+//                        EdmNavigationProperty edmNavigationProperty = responseEdmEntitySet.getEntityType().getNavigationProperty(navProp);
+//                        processNavigationproperties(entity, edmNavigationProperty, false);
+//                    }
+//                }
+
             } else if (segmentCount == 2) { // in case of navigation: DemoService.svc/Categories(3)/Students
 
                 UriResource lastSegment = resourceParts.get(1); // in our example we don't support more complex URIs
@@ -129,53 +133,25 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
                     }
                 } else {
                     // can be 'Department' or 'Students', no path supported
-                    UriResource uriResource1 = expandItem.getResourcePath().getUriResourceParts().get(0);
+                    uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
                     // we don't need to handle error cases, as it is done in the Olingo library
                     if (uriResource instanceof UriResourceNavigation) {
-                        edmNavigationProperty = ((UriResourceNavigation) uriResource1).getProperty();
+                        edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
                     }
                 }
+                processNavigationproperties(responseEntityCollection, edmNavigationProperty);
 
-                // can be 'Department' or 'Students', no path supported
-                // we don't need to handle error cases, as it is done in the Olingo library
-                if (edmNavigationProperty != null) {
-                    String navPropName = edmNavigationProperty.getName();
-                    EdmEntityType expandEdmEntityType = edmNavigationProperty.getType();
 
-                    List<Entity> entityList = responseEntityCollection.getEntities();
-                    for (Entity entity : entityList) {
-                        Link link = new Link();
-                        link.setTitle(navPropName);
-                        link.setType(Constants.ENTITY_NAVIGATION_LINK_TYPE);
-                        link.setRel(Constants.NS_ASSOCIATION_LINK_REL + navPropName);
-
-                        if (edmNavigationProperty.isCollection()) { // in case of Categories/$expand=Students
-                            // fetch the data for the $expand (to-many navigation) from backend
-                            EntityCollection expandEntityCollection = studentDAO.getRelatedEntityCollection(entity, expandEdmEntityType);
-                            link.setInlineEntitySet(expandEntityCollection);
-                            link.setHref(expandEntityCollection.getId().toASCIIString());
-                        } else { // in case of Student?$expand=Department
-                            // fetch the data for the $expand (to-one navigation) from backend
-                            // here we get the data for the expand
-                            Entity expandEntity = studentDAO.getRelatedEntity(entity, expandEdmEntityType);
-                            link.setInlineEntity(expandEntity);
-                            link.setHref(expandEntity.getId().toASCIIString());
-                        }
-
-                        // set the link - containing the expanded data - to the current entity
-                        entity.getNavigationLinks().add(link);
-                    }
-                }
             }
 
             // 4th: serialize
-            EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+            EdmEntityType edmEntityType = responseEdmEntitySet.getEntityType();
             // we need the property names of the $select, in order to build the context URL
             String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, expandOption, selectOption);
-            ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).selectList(selectList).build();
+            ContextURL contextUrl = ContextURL.with().entitySet(responseEdmEntitySet).selectList(selectList).build();
 
             // adding the selectOption to the serializerOpts will actually tell the lib to do the job
-            final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
+            final String id = request.getRawBaseUri() + "/" + responseEdmEntitySet.getName();
             EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
                     .contextURL(contextUrl)
                     .select(selectOption)
@@ -195,6 +171,39 @@ public class DemoEntityCollectionProcessor implements EntityCollectionProcessor 
             e.printStackTrace();
         }
 
+    }
+
+    private void processNavigationproperties(EntityCollection responseEntityCollection, EdmNavigationProperty edmNavigationProperty) {
+        // can be 'Department' or 'Students', no path supported
+        // we don't need to handle error cases, as it is done in the Olingo library
+        if (edmNavigationProperty != null) {
+            String navPropName = edmNavigationProperty.getName();
+            EdmEntityType expandEdmEntityType = edmNavigationProperty.getType();
+
+            List<Entity> entityList = responseEntityCollection.getEntities();
+            for (Entity entity : entityList) {
+                Link link = new Link();
+                link.setTitle(navPropName);
+                link.setType(Constants.ENTITY_NAVIGATION_LINK_TYPE);
+                link.setRel(Constants.NS_ASSOCIATION_LINK_REL + navPropName);
+
+                if (edmNavigationProperty.isCollection()) { // in case of Categories/$expand=Students
+                    // fetch the data for the $expand (to-many navigation) from backend
+                    EntityCollection expandEntityCollection = studentDAO.getRelatedEntityCollection(entity, expandEdmEntityType);
+                    link.setInlineEntitySet(expandEntityCollection);
+                    link.setHref(expandEntityCollection.getId().toASCIIString());
+                } else { // in case of Students?$expand=Department
+                    // fetch the data for the $expand (to-one navigation) from backend
+                    // here we get the data for the expand
+                    Entity expandEntity = studentDAO.getRelatedEntity(entity, expandEdmEntityType);
+                    link.setInlineEntity(expandEntity);
+                    link.setHref(expandEntity.getId().toASCIIString());
+                }
+
+                // set the link - containing the expanded data - to the current entity
+                entity.getNavigationLinks().add(link);
+            }
+        }
     }
 
 

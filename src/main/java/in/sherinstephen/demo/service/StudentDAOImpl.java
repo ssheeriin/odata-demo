@@ -34,7 +34,32 @@ public class StudentDAOImpl implements StudentDAO {
     public StudentDAOImpl() {
         this.studentList = new ArrayList<>();
         this.departmentList = new ArrayList<>();
-        initSampleData();
+        initStudentSampleData();
+        initDepartmentSampleData();
+    }
+
+    private void initDepartmentSampleData() {
+        Entity entity = new Entity();
+
+        entity.addProperty(new Property(null, "id", ValueType.PRIMITIVE, 1));
+        entity.addProperty(new Property(null, "name", ValueType.PRIMITIVE, "Java"));
+        entity.setType(DemoEdmProvider.ET_DEPARTMENT_FQN.getFullQualifiedNameAsString());
+        entity.setId(createId(entity, "id"));
+        departmentList.add(entity);
+
+        entity = new Entity();
+        entity.addProperty(new Property(null, "id", ValueType.PRIMITIVE, 2));
+        entity.addProperty(new Property(null, "name", ValueType.PRIMITIVE, "Linux"));
+        entity.setType(DemoEdmProvider.ET_DEPARTMENT_FQN.getFullQualifiedNameAsString());
+        entity.setId(createId(entity, "id"));
+        departmentList.add(entity);
+
+        entity = new Entity();
+        entity.addProperty(new Property(null, "id", ValueType.PRIMITIVE, 3));
+        entity.addProperty(new Property(null, "name", ValueType.PRIMITIVE, "Python"));
+        entity.setType(DemoEdmProvider.ET_DEPARTMENT_FQN.getFullQualifiedNameAsString());
+        entity.setId(createId(entity, "id"));
+        departmentList.add(entity);
     }
 
     @Override
@@ -43,9 +68,22 @@ public class StudentDAOImpl implements StudentDAO {
         // actually, this is only required if we have more than one Entity Sets
         if (edmEntitySet.getName().equals(DemoEdmProvider.ES_STUDENTS_NAME)) {
             return getStudents();
+        } else if (edmEntitySet.getName().equals(DemoEdmProvider.ES_DEPARTMENT_NAME)) {
+            return getDepartments();
         }
 
+
         return null;
+    }
+
+    private EntityCollection getDepartments() {
+        EntityCollection entitySet = new EntityCollection();
+
+        for (Entity categoryEntity : this.departmentList) {
+            entitySet.getEntities().add(categoryEntity);
+        }
+
+        return entitySet;
     }
 
     @Override
@@ -56,9 +94,19 @@ public class StudentDAOImpl implements StudentDAO {
         // actually, this is only required if we have more than one Entity Type
         if (edmEntityType.getName().equals(DemoEdmProvider.ES_STUDENTS_NAME)) {
             return getStudent(edmEntityType, keyParams);
+        } else if (edmEntityType.getName().equals(DemoEdmProvider.ET_DEPARTMENT_NAME)) {
+            return getDepartment(edmEntityType, keyParams);
         }
 
         return null;
+    }
+
+    private Entity getDepartment(EdmEntityType edmEntityType, List<UriParameter> keyParams) throws ODataApplicationException {
+        // the list of entities at runtime
+        EntityCollection entitySet = getDepartments();
+
+        /* generic approach to find the requested entity */
+        return Util.findEntity(edmEntityType, entitySet, keyParams);
     }
 
     @Override
@@ -137,7 +185,7 @@ public class StudentDAOImpl implements StudentDAO {
 
         if (sourceEntityFqn.equals(DemoEdmProvider.ET_STUDENT_FQN.getFullQualifiedNameAsString())
                 && relatedEntityFqn.equals(DemoEdmProvider.ET_DEPARTMENT_FQN)) {
-            navigationTargetEntityCollection.setId(createId(sourceEntity, "ID", DemoEdmProvider.NAV_TO_DEP));
+            navigationTargetEntityCollection.setId(createId(sourceEntity, "id", DemoEdmProvider.NAV_TO_DEP));
             // relation Products->Category (result all categories)
             int studentId = (Integer) sourceEntity.getProperty("id").getValue();
             if (studentId == 1 || studentId == 2) {
@@ -151,16 +199,16 @@ public class StudentDAOImpl implements StudentDAO {
                 && relatedEntityFqn.equals(DemoEdmProvider.ET_STUDENT_FQN)) {
             navigationTargetEntityCollection.setId(createId(sourceEntity, "id", DemoEdmProvider.NAV_TO_STUDENTS));
             // relation Category->Products (result all products)
-            int categoryID = (Integer) sourceEntity.getProperty("ID").getValue();
-            if (categoryID == 1) {
+            int departmentID = (Integer) sourceEntity.getProperty("id").getValue();
+            if (departmentID == 1) {
                 // the first 2 products are notebooks
                 navigationTargetEntityCollection.getEntities().addAll(studentList.subList(0, 2));
-            } else if (categoryID == 2) {
+            } else if (departmentID == 2) {
                 // the next 2 products are organizers
-                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(2, 4));
-            } else if (categoryID == 3) {
+                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(1, 2));
+            } else if (departmentID == 3) {
                 // the first 2 products are monitors
-                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(4, 6));
+                navigationTargetEntityCollection.getEntities().addAll(studentList.subList(1, 2));
             }
         }
 
@@ -172,8 +220,19 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
-    public Entity getRelatedEntity(Entity entity, EdmEntityType expandEdmEntityType) {
-        return null;
+    public Entity getRelatedEntity(Entity entity, EdmEntityType relatedEntityType) {
+        EntityCollection collection = getRelatedEntityCollection(entity, relatedEntityType);
+        if (collection.getEntities().isEmpty()) {
+            return null;
+        }
+        return collection.getEntities().get(0);
+    }
+
+    @Override
+    public Entity getRelatedEntity(Entity entity, EdmEntityType relatedEntityType, List<UriParameter> keyPredicates) throws ODataApplicationException {
+
+        EntityCollection relatedEntities = getRelatedEntityCollection(entity, relatedEntityType);
+        return Util.findEntity(relatedEntityType, relatedEntities, keyPredicates);
     }
 
     private void deleteStudent(EdmEntityType edmEntityType, List<UriParameter> keyPredicates) throws ODataApplicationException {
@@ -258,7 +317,7 @@ public class StudentDAOImpl implements StudentDAO {
         return retEntitySet;
     }
 
-    private void initSampleData() {
+    private void initStudentSampleData() {
 
 
         // add some sample product entities

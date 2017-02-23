@@ -41,9 +41,9 @@ public class Util {
 
         // loop over all entities in order to find that one that matches all keys in request
         // an example could be e.g. contacts(ContactID=1, CompanyID=1)
-        for(Entity rt_entity : entityList){
+        for (Entity rt_entity : entityList) {
             boolean foundEntity = entityMatchesAllKeys(edmEntityType, rt_entity, keyParams);
-            if(foundEntity){
+            if (foundEntity) {
                 return rt_entity;
             }
         }
@@ -52,7 +52,7 @@ public class Util {
     }
 
 
-    public static boolean entityMatchesAllKeys(EdmEntityType edmEntityType, Entity rt_entity,  List<UriParameter> keyParams)
+    public static boolean entityMatchesAllKeys(EdmEntityType edmEntityType, Entity rt_entity, List<UriParameter> keyParams)
             throws ODataApplicationException {
 
         // loop over all keys
@@ -62,7 +62,7 @@ public class Util {
             String keyText = key.getText();
 
             // Edm: we need this info for the comparison below
-            EdmProperty edmKeyProperty = (EdmProperty )edmEntityType.getProperty(keyName);
+            EdmProperty edmKeyProperty = (EdmProperty) edmEntityType.getProperty(keyName);
             Boolean isNullable = edmKeyProperty.isNullable();
             Integer maxLength = edmKeyProperty.getMaxLength();
             Integer precision = edmKeyProperty.getPrecision();
@@ -71,7 +71,7 @@ public class Util {
             // get the EdmType in order to compare
             EdmType edmType = edmKeyProperty.getType();
             // Key properties must be instance of primitive type
-            EdmPrimitiveType edmPrimitiveType = (EdmPrimitiveType)edmType;
+            EdmPrimitiveType edmPrimitiveType = (EdmPrimitiveType) edmType;
 
             // Runtime data: the value of the current entity
             Object valueObject = rt_entity.getProperty(keyName).getValue(); // null-check is done in FWK
@@ -84,15 +84,15 @@ public class Util {
                         precision, scale, isUnicode);
             } catch (EdmPrimitiveTypeException e) {
                 throw new ODataApplicationException("Failed to retrieve String value",
-                        HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(),Locale.ENGLISH, e);
+                        HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH, e);
             }
 
-            if (valueAsString == null){
+            if (valueAsString == null) {
                 return false;
             }
 
             boolean matches = valueAsString.equals(keyText);
-            if(!matches){
+            if (!matches) {
                 // if any of the key properties is not found in the entity, we don't need to search further
                 return false;
             }
@@ -109,7 +109,7 @@ public class Util {
      * This is defined as follows in the metadata:
      * <code>
      * <p>
-     * <EntitySet Name="Departments" EntityType="OData.Demo.Depatment">
+     * <EntitySet Name="Departments" EntityType="OData.Demo.Department">
      * <NavigationPropertyBinding Path="Students" Target="Students"/>
      * </EntitySet>
      * </code>

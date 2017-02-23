@@ -1,6 +1,5 @@
 package in.sherinstephen.demo.odata;
 
-import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.*;
@@ -77,7 +76,7 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
             // create PropertyRef for Key element
             CsdlPropertyRef propertyRef = new CsdlPropertyRef();
-            propertyRef.setName("ID");
+            propertyRef.setName("id");
 
             // navigation property: one-to-many
             CsdlNavigationProperty navProp = new CsdlNavigationProperty().setName("Students")
@@ -99,8 +98,8 @@ public class DemoEdmProvider extends CsdlAbstractEdmProvider {
 
     @Override
     public CsdlEntitySet getEntitySet(FullQualifiedName entityContainer, String entitySetName) throws ODataException {
-        if(entityContainer.equals(CONTAINER)) {
-            if(entitySetName.contains(ES_STUDENTS_NAME)) {
+        if (entityContainer.equals(CONTAINER)) {
+            if (entitySetName.contains(ES_STUDENTS_NAME)) {
                 CsdlEntitySet entitySet = new CsdlEntitySet();
                 entitySet.setName(ES_STUDENTS_NAME);
                 entitySet.setType(ET_STUDENT_FQN);

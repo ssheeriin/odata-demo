@@ -20,7 +20,7 @@ import java.util.ArrayList;
  * @author Sherin (I073367)
  * @since 21/2/17
  */
-@javax.servlet.annotation.WebServlet(name = "OdataServlet" , urlPatterns = {"/DemoService.svc/*"})
+@javax.servlet.annotation.WebServlet(name = "OdataServlet", urlPatterns = {"/DemoService.svc/*"})
 public class OdataServlet extends javax.servlet.http.HttpServlet {
 
     @Override

@@ -15,7 +15,7 @@ import java.util.List;
  * @since 21/2/17
  */
 public interface StudentDAO {
-    EntityCollection readEntitySetData(EdmEntitySet edmEntitySet)throws ODataApplicationException;
+    EntityCollection readEntitySetData(EdmEntitySet edmEntitySet) throws ODataApplicationException;
 
     Entity readEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams) throws ODataApplicationException;
 
@@ -28,4 +28,6 @@ public interface StudentDAO {
     EntityCollection getRelatedEntityCollection(Entity entity, EdmEntityType expandEdmEntityType);
 
     Entity getRelatedEntity(Entity entity, EdmEntityType expandEdmEntityType);
+
+    Entity getRelatedEntity(Entity entity, EdmEntityType relatedEntityType, List<UriParameter> keyPredicates) throws ODataApplicationException;
 }

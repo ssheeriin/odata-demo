@@ -15,23 +15,6 @@ public class Student {
     private Department department;
     private List<Grade> grades;
 
-    public static class Grade {
-        String subject;
-        int grade;
-        int max;
-
-        public Grade(String subject, int grade, int max) {
-            this.subject = subject;
-            this.grade = grade;
-            this.max = max;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + grade + "/" + max +")";
-        }
-    }
-
     public int getId() {
         return id;
     }
@@ -105,5 +88,22 @@ public class Student {
                 ", department=" + department +
                 ", grades=" + grades +
                 '}';
+    }
+
+    public static class Grade {
+        String subject;
+        int grade;
+        int max;
+
+        public Grade(String subject, int grade, int max) {
+            this.subject = subject;
+            this.grade = grade;
+            this.max = max;
+        }
+
+        @Override
+        public String toString() {
+            return "(" + grade + "/" + max + ")";
+        }
     }
 }
