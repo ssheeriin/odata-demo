@@ -1,2 +1,4 @@
 this is test text
-text added for rebase 
+text added for rebase
+text added for rebase in second commit 
+ 
